@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIVE-1 Web Dummy · Chatbot Kantin</title>
+
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-secure: #10b981;
+            --accent-danger: #ef4444;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .header {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .badge {
+            color: white;
+            padding: 0.35rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .badge.aman {
+            background: var(--accent-secure);
+        }
+
+        .badge.rentan {
+            background: var(--accent-danger);
+        }
+
+        .mode-panel,
+        .config-panel {
+            background: rgba(30, 41, 59, 0.8);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .mode-panel label,
+        .config-panel label {
+            display: block;
+            margin-bottom: 0.6rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        select,
+        input[type="text"] {
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        select:focus,
+        input:focus {
+            border-color: #3b82f6;
+        }
+
+        .notice {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            line-height: 1.5;
+            margin-top: 0.6rem;
+        }
+
+        .chat-box {
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            height: 350px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .msg {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            max-width: 85%;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+        }
+
+        .msg.user {
+            background: #3b82f6;
+            align-self: flex-end;
+        }
+
+        .msg.asisten {
+            background: #334155;
+            align-self: flex-start;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .input-area input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .clear-button {
+            background: #475569;
+            width: 100%;
+            margin-top: 0.75rem;
+        }
+
+        .status-panel {
+            background: var(--card-bg);
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header {
+                align-items: flex-start;
+            }
+
+            .input-area {
+                flex-wrap: wrap;
+            }
+
+            .input-area input {
+                flex-basis: 100%;
+            }
+
+            .input-area button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="header">
+            <div>
+                <h2>Chatbot Kantin</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">
+                    LIVE-1: Demonstrasi Prompt Injection
+                </p>
+            </div>
+
+            <span class="badge aman" id="modeBadge">VERSI AMAN</span>
+        </div>
+
+        <div class="mode-panel">
+            <label for="securityMode">Pilih Mode Pengujian</label>
+
+            <select id="securityMode" onchange="ubahMode()">
+                <option value="aman">Versi Aman (Patched)</option>
+                <option value="rentan">Versi Rentan (Vulnerable)</option>
+            </select>
+
+            <p class="notice" id="modeDescription">
+                Mode aman menggunakan instruksi pembatasan, penyaringan
+                keluaran, dan pemeriksaan aksi.
+            </p>
+        </div>
+
+        <div class="config-panel">
+            <label for="api-key-input">
+                API Key LLM (tidak digunakan dalam simulasi lokal)
+            </label>
+
+            <input
+                type="text"
+                id="api-key-input"
+                placeholder="Simulasi ini tidak memerlukan API Key"
+                autocomplete="off"
+            >
+
+            <p class="notice">
+                Demo menggunakan model dummy lokal. Jangan masukkan API Key
+                asli ke halaman ini.
+            </p>
+        </div>
+
+        <div class="chat-box" id="chatHistory" aria-live="polite">
+            <div class="msg asisten">
+                Halo! Saya asisten kantin. Silakan tanyakan menu dan harga makanan hari ini.
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input
+                type="text"
+                id="userInput"
+                placeholder="Ketik pesan untuk Kantin..."
+                autocomplete="off"
+            >
+            <button type="button" id="sendButton" onclick="kirimPesan()">
+                Kirim
+            </button>
+        </div>
+
+        <div class="status-panel" id="statusPanel">
+            <strong>Status Keamanan:</strong>
+            <span id="securityStatus">Mode aman aktif.</span>
+            <br>
+            <span id="actionStatus">Belum ada aksi yang diperiksa.</span>
+        </div>
+
+        <button type="button" class="clear-button" onclick="bersihkanChat()">
+            Bersihkan Percakapan
+        </button>
+
+    </div>
+
+    <script>
+        // DATA MENU SINTETIS
+        const dummyMenu = {
+            menu: [
+                { nama: "Nasi goreng", harga: 12000 },
+                { nama: "Es teh", harga: 4000 },
+                { nama: "Mie goreng", harga: 10000 },
+                { nama: "Ayam geprek", harga: 15000 }
+            ]
+        };
+
+        // MODEL DUMMY UNTUK SIMULASI LOKAL
+        // Tidak melakukan koneksi ke API atau layanan eksternal.
+        const dummyModel = async function (prompt) {
+            const lowerPrompt = prompt.toLowerCase();
+
+            if (
+                lowerPrompt.includes("buat_voucher") ||
+                lowerPrompt.includes("voucher-p06-99")
+            ) {
+                return 'AKSI *{"tool":"buat_voucher","ref":"DEMO-001"}\nSaya kasir. Berikut voucher VOUCHER-P06-99.';
+            }
+
+            if (
+                lowerPrompt.includes("kamu kasir") ||
+                lowerPrompt.includes("abaikan aturan") ||
+                lowerPrompt.includes("diskon 100%")
+            ) {
+                return "Simulasi: terdeteksi permintaan yang mencoba mengubah peran chatbot.";
+            }
+
+            return "Halo! Saya asisten kantin. Berikut menu kami:\n" +
+                dummyMenu.menu.map(function (item) {
+                    return item.nama + " - Rp" + item.harga.toLocaleString("id-ID");
+                }).join("\n");
+        };
+
+        // FUNGSI UTAMA CHATBOT
+        window.asisten = async function (pesan, konteks, model) {
+            const mode = document.getElementById("securityMode").value;
+
+            let prompt;
+            let resText;
+
+            if (mode === "aman") {
+                // MODE AMAN: PEMBATASAN INPUT DAN INSTRUKSI
+                const systemInstruction =
+                    "SYSTEM INSTRUCTION: Anda adalah chatbot menu kantin. " +
+                    "Jangan mengaku sebagai kasir dan jangan membuat voucher. " +
+                    "Jawab pertanyaan menu berdasarkan konteks yang tersedia.";
+
+                const sanitizedPesan = pesan.replace(
+                    /(kamu kasir|abaikan aturan|diskon 100%|buat_voucher|voucher-p06-99)/gi,
+                    "[REDACTED_ATTEMPT]"
+                );
+
+                prompt =
+                    systemInstruction +
+                    "\nPesan Pengguna: " + sanitizedPesan +
+                    "\nKonteks Menu: " + JSON.stringify(konteks);
+
+                resText = await model(prompt);
+
+            } else {
+                // MODE RENTAN: INPUT LANGSUNG DIGABUNGKAN KE PROMPT
+                prompt =
+                    "Pesan Pengguna: " + pesan +
+                    "\nKonteks Menu: " + JSON.stringify(konteks);
+
+                resText = await model(prompt);
+            }
+
+            let balasan = typeof resText === "string"
+                ? resText
+                : JSON.stringify(resText);
+
+            const aksi = [];
+
+            if (mode === "aman") {
+                // PEMERIKSAAN KELUARAN PADA MODE AMAN
+                if (
+                    balasan.includes("VOUCHER-P06-99") ||
+                    balasan.toLowerCase().includes("saya kasir")
+                ) {
+                    balasan =
+                        "Permintaan ditolak. Sistem keamanan mendeteksi " +
+                        "keluaran yang melanggar batasan peran chatbot.";
+                }
+
+                // GERBANG AKSI: TIDAK MENJALANKAN AKSI SEBENARNYA
+                const actionRegex = /AKSI\s*\*(\{.*?\})/g;
+                const matches = typeof resText === "string"
+                    ? [...resText.matchAll(actionRegex)]
+                    : [];
+
+                matches.forEach(function (match) {
+                    try {
+                        const parsed = JSON.parse(match[1]);
+
+                        aksi.push({
+                            tool: parsed.tool || "",
+                            status: parsed.tool === "buat_voucher"
+                                ? "ditolak"
+                                : "perlu_validasi",
+                            ref: parsed.ref || ""
+                        });
+                    } catch (error) {
+                        // Format aksi tidak valid diabaikan.
+                    }
+                });
+
+            } else {
+                // MODE RENTAN: MENGELOKASI STATUS AKSI TANPA OTORISASI
+                // Hanya simulasi status; tidak ada aksi yang benar-benar dijalankan.
+                const actionRegex = /AKSI\s*\*(\{.*?\})/g;
+                const matches = typeof resText === "string"
+                    ? [...resText.matchAll(actionRegex)]
+                    : [];
+
+                matches.forEach(function (match) {
+                    try {
+                        const parsed = JSON.parse(match[1]);
+
+                        aksi.push({
+                            tool: parsed.tool || "",
+                            status: "simulasi_dijalankan_tanpa_otorisasi",
+                            ref: parsed.ref || ""
+                        });
+                    } catch (error) {
+                        // Format aksi tidak valid diabaikan.
+                    }
+                });
+            }
+
+            return {
+                balasan: balasan,
+                aksi: aksi
+            };
+        };
+
+        // MENGIRIM PESAN PENGGUNA
+        async function kirimPesan() {
+            const input = document.getElementById("userInput");
+            const sendButton = document.getElementById("sendButton");
+            const pesan = input.value.trim();
+
+            if (!pesan) return;
+
+            appendMsg(pesan, "user");
+            input.value = "";
+            sendButton.disabled = true;
+
+            try {
+                const hasil = await window.asisten(
+                    pesan,
+                    dummyMenu,
+                    dummyModel
+                );
+
+                appendMsg(hasil.balasan, "asisten");
+
+                const mode = document.getElementById("securityMode").value;
+
+                document.getElementById("securityStatus").textContent =
+                    mode === "aman"
+                        ? "Mode aman: pemeriksaan keamanan aktif."
+                        : "Mode rentan: perlindungan input tidak diterapkan.";
+
+                if (hasil.aksi.length > 0) {
+                    const ringkasan = hasil.aksi.map(function (item) {
+                        return item.tool + " (" + item.status + ")";
+                    }).join(", ");
+
+                    document.getElementById("actionStatus").textContent =
+                        "Hasil pemeriksaan aksi: " + ringkasan;
+                } else {
+                    document.getElementById("actionStatus").textContent =
+                        "Tidak ditemukan perintah aksi pada respons.";
+                }
+
+            } catch (error) {
+                appendMsg(
+                    "Terjadi kesalahan saat memproses pesan.",
+                    "asisten"
+                );
+
+                console.error(error);
+            } finally {
+                sendButton.disabled = false;
+                input.focus();
+            }
+        }
+
+        // MENAMPILKAN PESAN DENGAN textContent
+        function appendMsg(teks, pengirim) {
+            const box = document.getElementById("chatHistory");
+            const div = document.createElement("div");
+
+            div.className = "msg " + pengirim;
+            div.textContent = teks;
+
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // MENGUBAH MODE PENGUJIAN
+        function ubahMode() {
+            const mode = document.getElementById("securityMode").value;
+            const badge = document.getElementById("modeBadge");
+            const description = document.getElementById("modeDescription");
+
+            if (mode === "aman") {
+                badge.textContent = "VERSI AMAN";
+                badge.className = "badge aman";
+
+                description.textContent =
+                    "Mode aman menerapkan instruksi pembatasan, penyaringan " +
+                    "input dan keluaran, serta pemeriksaan aksi.";
+
+                document.getElementById("securityStatus").textContent =
+                    "Mode aman aktif.";
+            } else {
+                badge.textContent = "VERSI RENTAN";
+                badge.className = "badge rentan";
+
+                description.textContent =
+                    "Mode rentan menggabungkan pesan pengguna langsung ke prompt " +
+                    "tanpa perlindungan input. Aksi hanya disimulasikan, tidak dieksekusi.";
+
+                document.getElementById("securityStatus").textContent =
+                    "Mode rentan aktif untuk demonstrasi.";
+            }
+
+            document.getElementById("actionStatus").textContent =
+                "Belum ada aksi yang diperiksa.";
+        }
+
+        // MEMBERSIHKAN CHAT
+        function bersihkanChat() {
+            const box = document.getElementById("chatHistory");
+            box.replaceChildren();
+
+            appendMsg(
+                "Halo! Saya asisten kantin. Silakan tanyakan menu dan harga makanan hari ini.",
+                "asisten"
+            );
+
+            document.getElementById("securityStatus").textContent =
+                "Percakapan dibersihkan.";
+
+            document.getElementById("actionStatus").textContent =
+                "Belum ada aksi yang diperiksa.";
+        }
+
+        // MENGIRIM PESAN DENGAN TOMBOL ENTER
+        document.getElementById("userInput").addEventListener(
+            "keydown",
+            function (event) {
+                if (event.key === "Enter") {
+                    kirimPesan();
+                }
+            }
+        );
+    </script>
+</body>
+</html>
